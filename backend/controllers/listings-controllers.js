@@ -1,5 +1,7 @@
 const { validationResult } = require("express-validator");
+const mongoose = require("mongoose");
 const Listing = require("../models/listing-model");
+const User = require("../models/user");
 
 const getListings = async (req, res, next) => {
   let listings;
@@ -28,12 +30,36 @@ const getListingById = async (req, res, next) => {
   res.json({ listing: listing.toObject({ getters: true }) });
 };
 
+const getListingsByUserId = async (req, res, next) => {
+  const uid = req.params.uid;
+  let listings = [];
+  try {
+    listings = await Listing.find({ userId: uid });
+  } catch (error) {
+    console.log(error);
+    return next(new Error("Could not get Listings"));
+  }
+  if (listings.length === 0)
+    return next(
+      new Error("Could not find any listings for the provided user id.")
+    );
+  res.json({ listings: listings.map((l) => l.toObject({ getters: true })) });
+};
+
 const addListing = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return next(new Error("Invalid inputs passed, please check your data."));
   }
-  const { title, images, description, price, categoryId, location } = req.body;
+  const {
+    title,
+    images,
+    description,
+    price,
+    categoryId,
+    location,
+    userId,
+  } = req.body;
   const newListing = new Listing({
     title,
     description,
@@ -45,11 +71,28 @@ const addListing = async (req, res, next) => {
       },
     ],
     categoryId,
-    userId: "1",
+    userId,
     location,
   });
+
+  let user;
   try {
-    await newListing.save();
+    user = await User.findById(userId);
+  } catch (error) {
+    console.log(error);
+    return next(new Error("Unable to add Listing"));
+  }
+  if (!user) {
+    return next(new Error("User does not exist!"));
+  }
+  try {
+    // using session as we want all these events to succeed together
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await newListing.save({ session: sess });
+    user.listings.push(newListing);
+    await user.save({ session: sess });
+    await sess.commitTransaction();
   } catch (error) {
     console.log(error);
     return next(new Error("Unable to add Listing"));
@@ -91,14 +134,20 @@ const deleteListing = async (req, res, next) => {
   const lid = req.params.lid;
   let listing;
   try {
-    listing = await Listing.findById(lid);
+    // populate can only be used with related schemas
+    listing = await Listing.findById(lid).populate("userId");
   } catch (error) {
     console.log(error);
     return next(new Error("Could not Delete Listing"));
   }
   if (!listing) return next(new Error("Listing does not exist"));
   try {
-    await listing.remove();
+    const sess = await mongoose.startSession();
+    sess.startTransaction();
+    await listing.remove({ session: sess });
+    listing.userId.listings.pull(listing);
+    await listing.userId.save({ session: sess });
+    await sess.commitTransaction();
   } catch (error) {
     console.log(error);
     return next(new Error("Could not Delete Listing"));
@@ -107,6 +156,7 @@ const deleteListing = async (req, res, next) => {
 };
 
 exports.updateListing = updateListing;
+exports.getListingsByUserId = getListingsByUserId;
 exports.getListings = getListings;
 exports.getListingById = getListingById;
 exports.addListing = addListing;
