@@ -4,11 +4,14 @@ const { check } = require("express-validator");
 
 const listingsControllers = require("../controllers/listings-controllers");
 const fileUpload = require("../middleware/file-upload");
+const checkAuth = require("../middleware/auth");
+
 const router = express.Router();
 
 router.get("/", listingsControllers.getListings);
 router.get("/:lid", listingsControllers.getListingById);
 router.get("/user/:uid", listingsControllers.getListingsByUserId);
+router.use(checkAuth);
 router.post(
   "/",
   fileUpload.single("image"),
