@@ -11,7 +11,7 @@ const router = express.Router();
 router.get("/", listingsControllers.getListings);
 router.get("/:lid", listingsControllers.getListingById);
 router.get("/user/:uid", listingsControllers.getListingsByUserId);
-router.use(checkAuth);
+// router.use(checkAuth);
 router.post(
   "/",
   fileUpload.single("image"),
