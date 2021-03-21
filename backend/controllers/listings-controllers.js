@@ -48,28 +48,23 @@ const getListingsByUserId = async (req, res, next) => {
 
 const addListing = async (req, res, next) => {
   const errors = validationResult(req);
+  // console.log(errors);
   if (!errors.isEmpty()) {
     return next(new Error("Invalid inputs passed, please check your data."));
   }
-  const {
-    title,
-    images,
-    description,
-    price,
-    categoryId,
-    location,
-    userId,
-  } = req.body;
+  const { title, description, price, categoryId, location, userId } = req.body;
+  let images = [];
+  req.files.forEach((image) => {
+    images.push({
+      fileName: "http://192.168.43.210:5000/" + image.path,
+    });
+  });
+
   const newListing = new Listing({
     title,
     description,
     price,
-    images: [
-      {
-        fileName:
-          "https://huronelginwater.ca/wp-content/uploads/2019/03/test.jpg",
-      },
-    ],
+    images,
     categoryId,
     userId,
     location,

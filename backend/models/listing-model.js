@@ -10,8 +10,8 @@ const listingSchema = new Schema({
   categoryId: { type: Number, required: true },
   userId: { type: mongoose.Types.ObjectId, required: true, ref: "User" },
   location: {
-    lat: { type: Number, required: true },
-    lng: { type: Number, required: true },
+    lat: { type: Number, required: false },
+    lng: { type: Number, required: false },
   },
 });
 

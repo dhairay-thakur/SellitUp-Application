@@ -14,12 +14,11 @@ router.get("/user/:uid", listingsControllers.getListingsByUserId);
 // router.use(checkAuth);
 router.post(
   "/",
-  fileUpload.single("image"),
+  fileUpload.array("images"),
   [
     check("title").not().isEmpty(),
     check("price").not().isEmpty(),
     check("categoryId").not().isEmpty(),
-    check("location").not().isEmpty(),
   ],
   listingsControllers.addListing
 );
