@@ -22,7 +22,7 @@ app.use((req, res, next) => {
 });
 
 app.use((error, req, res, next) => {
-  if (req.files[0]) {
+  if (req.files) {
     req.files.forEach((image) => {
       fs.unlink(image.path);
     });

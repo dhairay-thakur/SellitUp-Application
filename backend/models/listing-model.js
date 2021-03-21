@@ -9,10 +9,6 @@ const listingSchema = new Schema({
   price: { type: Number, required: true },
   categoryId: { type: Number, required: true },
   userId: { type: mongoose.Types.ObjectId, required: true, ref: "User" },
-  location: {
-    lat: { type: Number, required: false },
-    lng: { type: Number, required: false },
-  },
 });
 
 module.exports = mongoose.model("Listing", listingSchema);

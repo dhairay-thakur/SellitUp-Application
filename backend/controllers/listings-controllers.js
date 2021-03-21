@@ -46,13 +46,27 @@ const getListingsByUserId = async (req, res, next) => {
   res.json({ listings: listings.map((l) => l.toObject({ getters: true })) });
 };
 
+const getListingsByCategoryId = async (req, res, next) => {
+  const cid = req.params.cid;
+  let listings = [];
+  try {
+    listings = await Listing.find({ categoryId: cid });
+  } catch (error) {
+    console.log(error);
+    return next(new Error("Could not get Listings"));
+  }
+  if (listings.length === 0)
+    return next(new Error("Could not find any listings for this category"));
+  res.json({ listings: listings.map((l) => l.toObject({ getters: true })) });
+};
+
 const addListing = async (req, res, next) => {
   const errors = validationResult(req);
   // console.log(errors);
   if (!errors.isEmpty()) {
     return next(new Error("Invalid inputs passed, please check your data."));
   }
-  const { title, description, price, categoryId, location, userId } = req.body;
+  const { title, description, price, categoryId, userId } = req.body;
   let images = [];
   req.files.forEach((image) => {
     images.push({
@@ -67,7 +81,6 @@ const addListing = async (req, res, next) => {
     images,
     categoryId,
     userId,
-    location,
   });
 
   let user;
@@ -100,7 +113,7 @@ const updateListing = async (req, res, next) => {
   if (!errors.isEmpty()) {
     return next(new Error("Invalid inputs passed, please check your data."));
   }
-  const { title, images, description, price, categoryId, location } = req.body;
+  const { title, description, price, categoryId } = req.body;
   const lid = req.params.lid;
   let listing;
   try {
@@ -114,7 +127,6 @@ const updateListing = async (req, res, next) => {
   listing.description = description;
   listing.price = price;
   listing.categoryId = categoryId;
-  listing.location = location;
 
   try {
     await listing.save();
@@ -152,6 +164,7 @@ const deleteListing = async (req, res, next) => {
 
 exports.updateListing = updateListing;
 exports.getListingsByUserId = getListingsByUserId;
+exports.getListingsByCategoryId = getListingsByCategoryId;
 exports.getListings = getListings;
 exports.getListingById = getListingById;
 exports.addListing = addListing;

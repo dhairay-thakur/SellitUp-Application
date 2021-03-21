@@ -11,6 +11,7 @@ const router = express.Router();
 router.get("/", listingsControllers.getListings);
 router.get("/:lid", listingsControllers.getListingById);
 router.get("/user/:uid", listingsControllers.getListingsByUserId);
+router.get("/category/:cid", listingsControllers.getListingsByCategoryId);
 // router.use(checkAuth);
 router.post(
   "/",
@@ -28,7 +29,6 @@ router.patch(
     check("title").not().isEmpty(),
     check("price").not().isEmpty(),
     check("categoryId").not().isEmpty(),
-    check("location").not().isEmpty(),
   ],
   listingsControllers.updateListing
 );
