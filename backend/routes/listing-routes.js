@@ -8,11 +8,12 @@ const checkAuth = require("../middleware/auth");
 
 const router = express.Router();
 
+router.use(checkAuth);
+
 router.get("/", listingsControllers.getListings);
 router.get("/:lid", listingsControllers.getListingById);
 router.get("/user/:uid", listingsControllers.getListingsByUserId);
 router.get("/category/:cid", listingsControllers.getListingsByCategoryId);
-// router.use(checkAuth);
 router.post(
   "/",
   fileUpload.array("images"),

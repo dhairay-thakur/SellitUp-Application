@@ -14,6 +14,19 @@ const getUsers = async (req, res, next) => {
   res.json({ users: users.map((u) => u.toObject({ getters: true })) });
 };
 
+const getUserDetails = async (req, res, next) => {
+  const uid = req.params.uid;
+  let user;
+  try {
+    user = await User.findById(uid);
+  } catch (error) {
+    console.log(error);
+    return next(new Error("Could not find User details"));
+  }
+  if (!user) return next(new Error("Could not find User details"));
+  res.json({ user });
+};
+
 const signup = async (req, res, next) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -63,7 +76,11 @@ const signup = async (req, res, next) => {
   let token;
   try {
     token = jwt.sign(
-      { userId: createdUser.id, email: createdUser.email },
+      {
+        userId: createdUser.id,
+        email: createdUser.email,
+        name: createdUser.name,
+      },
       "sellitup-private-key",
       { expiresIn: "7d" }
     );
@@ -72,9 +89,7 @@ const signup = async (req, res, next) => {
     return next(new Error("Signup Failed, Please Try Again Later"));
   }
 
-  res
-    .status(201)
-    .json({ userId: createdUser.id, email: createdUser.email, token });
+  res.status(201).json({ token });
 };
 
 const login = async (req, res, next) => {
@@ -109,7 +124,11 @@ const login = async (req, res, next) => {
   let token;
   try {
     token = jwt.sign(
-      { userId: existingUser.id, email: existingUser.email },
+      {
+        userId: existingUser.id,
+        email: existingUser.email,
+        name: existingUser.name,
+      },
       "sellitup-private-key",
       { expiresIn: "7d" }
     );
@@ -118,9 +137,10 @@ const login = async (req, res, next) => {
     return next(new Error("Login Failed, Please Try Again Later"));
   }
 
-  res.json({ userId: createdUser.id, email: createdUser.email, token });
+  res.json({ token });
 };
 
 exports.getUsers = getUsers;
+exports.getUserDetails = getUserDetails;
 exports.signup = signup;
 exports.login = login;
